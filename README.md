@@ -8,10 +8,10 @@ The SDK is designed to have no other dependencies other than iOS itself. It shou
 
 Your app will need to define a specific URL scheme in its Info.plist file which will identify it to the login SDK. The "Identifier" of this URL scheme must be set up in a specific way. Here is an example:
 
-* Identifier: `net.app.client.UxUWrSdVLyCaShN62xZR5tknGvAxK93P`
-    * ... where `UxUWrSdVLyCaShN62xZR5tknGvAxK93P` is the client ID of the application.
-* URL scheme: `adn9281`
-    * ... where `9281` is the app ID listed in the app management interface.
+* Identifier: `net.app.client.u39ekNnqm3cMcwRJbUELZXax5kuU8qb4`
+    * ... where `u39ekNnqm3cMcwRJbUELZXax5kuU8qb4` is the client ID of the application.
+* URL scheme: `adn1368`
+    * ... where `1368` is the app ID listed in the app management interface.
 
 ![Xcode Info.plist editor screenshot](https://files.app.net/1/34450/a_mk_VrbaUl2WRLeE5vVbZ--R0WdluIo80CxSZ9NC1d1t35Mwbh9HjR6_jrPQSbamKvINn06ztwICNYpJoMhzHwHTqP7laHmXdWC4_vvRAFrpcpBfpXoWtwH77ohNePRsm0b-rhsnFjvzaSRniK_OPkUqf5H1Ai2z7CAhSHjP3Ek)
 
