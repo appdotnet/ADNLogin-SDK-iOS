@@ -30,7 +30,7 @@
 static NSString *const kADNLoginSDKScheme = ADNLOGIN_SDK_SCHEME;
 static NSString *const kADNLoginURLNamePrefix = @"net.app.client.";
 
-static NSString *const kADNLoginSignupAvailablePListURL = @"https://account.app.net/adnlogin/signupavailable?platform=ios&client_id=%@&scheme=%@";
+static NSString *const kADNLoginSignupAvailablePListURL = @"https://alpha-api.app.net/sdk/0/updates.plist?platform=ios&client_id=%@&scheme=%@";
 static NSString *const kADNLoginAppInstallURL = @"itms-apps://itunes.apple.com/us/app/id534414475";
 
 static NSString *const kADNLoginMissingURLSchemeErrorMessage = @"ADNLogin URL scheme must be in the format 'adnNNNNsuffix'";
