@@ -46,8 +46,8 @@ In your app delegate's .m file, instantiate the SDK:
 Ensure that the login SDK has the opportunity to handle any open URL which comes back:
 
 ```objc
-- (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)url {
-	return [self.adn handleOpenURL:url];
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
+    return [self.adn openURL:url sourceApplication:sourceApplication annotation:annotation];
  }
 ```
 
@@ -56,11 +56,11 @@ Implement the ADNLoginDelegate protocol methods:
 ```objc
 #pragma mark - ADNLoginDelegate
 
-- (void)adnLoginDidSucceedWithToken:(NSString *)accessToken {
+- (void)adnLoginDidSucceedForUserWithID:(NSString *)userID token:(NSString *)accessToken {
     // ... do some stuff
 }
 
-- (void)adnLoginDidFailWithMessage:(NSString *)errorMessage {
+- (void)adnLoginDidFailWithError:(NSError *)error {
     // ... and here too
 }
 ```

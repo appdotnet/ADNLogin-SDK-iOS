@@ -58,9 +58,23 @@ static NSString *queryStringEscape(NSString *string, NSStringEncoding encoding) 
 static NSString *queryStringForParameters(NSDictionary *parameters) {
 	NSMutableArray *a = [NSMutableArray arrayWithCapacity:[parameters count]];
 	[parameters enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-		[a addObject:[NSString stringWithFormat:@"%@=%@",
-					  queryStringEscape(key, NSUTF8StringEncoding),
-					  queryStringEscape(obj, NSUTF8StringEncoding)]];
+		if (obj == [NSNull null]) {
+			return;
+		}
+
+		if ([obj isKindOfClass:[NSValue class]]) {
+			obj = [obj stringValue];
+		}
+
+		if (![obj isKindOfClass:[NSString class]]) {
+			return;
+		}
+
+		if ([obj length]) {
+			[a addObject:[NSString stringWithFormat:@"%@=%@",
+						  queryStringEscape(key, NSUTF8StringEncoding),
+						  queryStringEscape(obj, NSUTF8StringEncoding)]];
+		}
 	}];
 
 	return [a componentsJoinedByString:@"&"];
@@ -186,34 +200,35 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 
 - (BOOL)loginWithScopes:(NSArray *)scopes {
 	NSString *scopeString = [scopes componentsJoinedByString:@" "] ?: @"";
-	NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:self.clientID, @"client_id",
-								scopeString, @"scope",
-								[NSString stringWithFormat:@"%u", self.appPK], @"app_pk",
-								self.schemeSuffix, @"suffix", nil];
-
+	NSDictionary *parameters = @{@"client_id": self.clientID, @"app_pk": @(self.appPK), @"suffix": self.schemeSuffix ?: [NSNull null], @"scope": scopeString};
 	NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://token?%@", self.loginScheme, queryStringForParameters(parameters)]];
 
-	if ([[UIApplication sharedApplication] canOpenURL:url]) {
-		[[UIApplication sharedApplication] openURL:url];
-
-		return YES;
-	}
-
-	return NO;
+	return [[UIApplication sharedApplication] openURL:url];
 }
 
-- (BOOL)handleOpenURL:(NSURL *)url {
+- (BOOL)openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
 	if ([url.scheme isEqualToString:self.primaryScheme]) {
+		if (sourceApplication != nil && !([sourceApplication isEqualToString:@"net.app.moana"] || [sourceApplication hasPrefix:@"net.app.moana."])) {
+			return NO;
+		}
+
 		NSDictionary *parameters = parametersForQueryString(url.fragment);
 		NSString *accessToken = parameters[@"access_token"];
+		NSString *userID = parameters[@"user_id"];
 		if (accessToken) {
 			dispatch_async(dispatch_get_main_queue(), ^{
-				[self.delegate adnLoginDidSucceedWithToken:accessToken];
+				if ([self.delegate respondsToSelector:@selector(adnLoginDidSucceedForUserWithID:token:)]) {
+					[self.delegate adnLoginDidSucceedForUserWithID:userID token:accessToken];
+				}
 			});
 		} else {
-			NSString *error = parameters[@"error"] ?: @"Error logging in.";
+			NSString *errorMessage = parameters[@"error"] ?: @"Error logging in.";
+			NSError *error = [NSError errorWithDomain:kADNLoginErrorDomain code:0 userInfo:@{NSLocalizedDescriptionKey: errorMessage}];
+
 			dispatch_async(dispatch_get_main_queue(), ^{
-				[self.delegate adnLoginDidFailWithMessage:error];
+				if ([self.delegate respondsToSelector:@selector(adnLoginDidFailWithError:)]) {
+					[self.delegate adnLoginDidFailWithError:error];
+				}
 			});
 		}
 
@@ -227,6 +242,13 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 
 - (BOOL)installLoginApp {
 	return [[UIApplication sharedApplication] openURL:[NSURL URLWithString:kADNLoginAppInstallURL]];
+}
+
+- (BOOL)sendInviteWithMessage:(NSString *)message toEmail:(NSString *)email {
+	NSDictionary *parameters = @{@"client_id": self.clientID, @"app_pk": @(self.appPK), @"suffix": self.schemeSuffix ?: [NSNull null], @"message": message ?: [NSNull null], @"email": email ?: [NSNull null]};
+	NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://invite/send?%@", self.loginScheme, queryStringForParameters(parameters)]];
+
+	return [[UIApplication sharedApplication] openURL:url];
 }
 
 @end
