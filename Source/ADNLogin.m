@@ -244,11 +244,4 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 	return [[UIApplication sharedApplication] openURL:[NSURL URLWithString:kADNLoginAppInstallURL]];
 }
 
-- (BOOL)sendInviteWithMessage:(NSString *)message toEmail:(NSString *)email {
-	NSDictionary *parameters = @{@"client_id": self.clientID, @"app_pk": @(self.appPK), @"suffix": self.schemeSuffix ?: [NSNull null], @"message": message ?: [NSNull null], @"email": email ?: [NSNull null]};
-	NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://invite/send?%@", self.loginScheme, queryStringForParameters(parameters)]];
-
-	return [[UIApplication sharedApplication] openURL:url];
-}
-
 @end

@@ -104,14 +104,4 @@ static NSString *const kADNLoginErrorDomain = @"ADNLoginErrorDomain";
  */
 - (BOOL)installLoginApp;
 
-/**
- Request that the App.net app send an invite to a user. The user will have the opportunity to edit the message before sending.
-
- @param message A message to the recipient (or nil for a default message)
- @param email The email address of the user (or nil)
-
- @return `YES` if the App.net app was able to be launched, `NO` if it was not.
- */
-- (BOOL)sendInviteWithMessage:(NSString *)message toEmail:(NSString *)email;
-
 @end
