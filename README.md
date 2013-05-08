@@ -1,6 +1,6 @@
 # ADNLogin-SDK-iOS
 
-This is the (very preliminary) documentation for the App.net Login SDK for iOS. It allows users to forgo entering passwords into each app and instead authorize from the App.net Passport iOS application. This app will allow you to browse the App.net directory and perform account management functions.
+This is the documentation for the App.net Login SDK for iOS. It allows users to forgo entering passwords into each app and instead authorize from the App.net Passport iOS application. This app will allow you to browse the App.net directory and perform account management functions.
 
 ## Usage
 
