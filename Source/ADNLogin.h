@@ -49,6 +49,14 @@ static NSString *const kADNLoginErrorDomain = @"ADNLoginErrorDomain";
 */
 - (void)adnLoginDidFailWithError:(NSError *)error;
 
+@optional
+
+/**
+ Called when app was launched from App.net Passport.
+ (Optional. App will still be launchable if this method isn't defined.)
+ */
+- (void)adnLoginDidLaunchFromPassport;
+
 @end
 
 

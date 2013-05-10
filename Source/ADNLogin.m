@@ -212,22 +212,30 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 			return NO;
 		}
 
-		NSDictionary *parameters = parametersForQueryString(url.fragment);
-		NSString *accessToken = parameters[@"access_token"];
-		NSString *userID = parameters[@"user_id"];
-		if (accessToken) {
-			dispatch_async(dispatch_get_main_queue(), ^{
-				if ([self.delegate respondsToSelector:@selector(adnLoginDidSucceedForUserWithID:token:)]) {
-					[self.delegate adnLoginDidSucceedForUserWithID:userID token:accessToken];
-				}
-			});
-		} else {
-			NSString *errorMessage = parameters[@"error"] ?: @"Error logging in.";
-			NSError *error = [NSError errorWithDomain:kADNLoginErrorDomain code:0 userInfo:@{NSLocalizedDescriptionKey: errorMessage}];
+		if ([url.host isEqualToString:@"return"]) {
+			NSDictionary *parameters = parametersForQueryString(url.fragment);
+			NSString *accessToken = parameters[@"access_token"];
+			NSString *userID = parameters[@"user_id"];
+			if (accessToken) {
+				dispatch_async(dispatch_get_main_queue(), ^{
+					if ([self.delegate respondsToSelector:@selector(adnLoginDidSucceedForUserWithID:token:)]) {
+						[self.delegate adnLoginDidSucceedForUserWithID:userID token:accessToken];
+					}
+				});
+			} else {
+				NSString *errorMessage = parameters[@"error"] ?: @"Error logging in.";
+				NSError *error = [NSError errorWithDomain:kADNLoginErrorDomain code:0 userInfo:@{NSLocalizedDescriptionKey: errorMessage}];
 
+				dispatch_async(dispatch_get_main_queue(), ^{
+					if ([self.delegate respondsToSelector:@selector(adnLoginDidFailWithError:)]) {
+						[self.delegate adnLoginDidFailWithError:error];
+					}
+				});
+			}
+		} else if ([url.host isEqualToString:@"launch"]) {
 			dispatch_async(dispatch_get_main_queue(), ^{
-				if ([self.delegate respondsToSelector:@selector(adnLoginDidFailWithError:)]) {
-					[self.delegate adnLoginDidFailWithError:error];
+				if ([self.delegate respondsToSelector:@selector(adnLoginDidLaunchFromPassport)]) {
+					[self.delegate adnLoginDidLaunchFromPassport];
 				}
 			});
 		}
