@@ -289,7 +289,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 		@"crumb_ts": @([[NSDate date] timeIntervalSince1970]),
 		@"client_id": self.clientID,
 		@"app_pk": @(self.appPK),
-		@"suffix": self.schemeSuffix ?: [NSNull null],
+		@"suffix": self.schemeSuffix ?: @"",
 		@"sdk_version": kADNLoginSDKVersion,
 	};
 
@@ -359,7 +359,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 
 	[self beginPollingWithDuration:kADNLoginShortPollingDuration];
 
-	[self.storePresentingViewController dismissViewControllerAnimated:YES completion:nil];
+	[presentingViewController dismissViewControllerAnimated:YES completion:nil];
 }
 
 #pragma mark - Polling
