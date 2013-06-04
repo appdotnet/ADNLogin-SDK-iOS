@@ -27,30 +27,25 @@
 	#define ADNLOGIN_SDK_SCHEME @""
 #endif
 
+#define kADNLoginShortPollingDuration 30.0
+#define kADNLoginLongPollingDuration 300.0
+
+#define kADNLoginPollingInterval 1.0
+
 static NSString *const kADNLoginSDKScheme = ADNLOGIN_SDK_SCHEME;
 static NSString *const kADNLoginURLNamePrefix = @"net.app.client.";
+static NSString *const kADNLoginSDKVersion = @"2.0.0";
+static NSString *const kADNLoginCrumbPasteboardName = @"net.app.adnlogin.breadcrumb";
+static NSString *const kADNLoginCrumbPasteboardType = @"net.app.adnlogin.breadcrumb.plist";
 
-static NSString *const kADNLoginSignupAvailablePListURL = @"https://alpha-api.app.net/sdk/0/updates.plist?platform=ios&client_id=%@&scheme=%@";
-static NSString *const kADNLoginAppInstallURL = @"itms-apps://itunes.apple.com/us/app/id534414475";
+static NSString *const kADNLoginAppInstallURLTemplate = @"itms-apps://itunes.apple.com/us/app/id%@";
+static NSString *const kADNLoginAppInstalliTunesID = @"534414475";
 
 static NSString *const kADNLoginMissingURLSchemeErrorMessage = @"ADNLogin URL scheme must be in the format 'adnNNNNsuffix'";
 
-@interface ADNLogin ()
-
-@property (strong, nonatomic) NSString *clientID;
-@property (assign, nonatomic) NSInteger appPK;
-@property (strong, nonatomic) NSString *primaryScheme;
-@property (strong, nonatomic) NSString *schemeSuffix;
-
-@property (readonly, nonatomic) NSString *loginScheme;
-
-@end
-
-@implementation ADNLogin
-
 static NSString *queryStringEscape(NSString *string, NSStringEncoding encoding) {
-    static NSString *const kAFCharactersToBeEscaped = @":/?&=;+!@#$()~',*";
-    static NSString *const kAFCharactersToLeaveUnescaped = @"[].";
+	static NSString *const kAFCharactersToBeEscaped = @":/?&=;+!@#$()~',*";
+	static NSString *const kAFCharactersToLeaveUnescaped = @"[].";
 
 	return (__bridge_transfer  NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (__bridge CFStringRef)string, (__bridge CFStringRef)kAFCharactersToLeaveUnescaped, (__bridge CFStringRef)kAFCharactersToBeEscaped, CFStringConvertNSStringEncodingToEncoding(encoding));
 }
@@ -95,6 +90,26 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 
 	return parameters;
 }
+
+@interface ADNLogin ()
+
+@property (strong, nonatomic) NSString *clientID;
+@property (assign, nonatomic) NSInteger appPK;
+@property (strong, nonatomic) NSString *primaryScheme;
+@property (strong, nonatomic) NSString *schemeSuffix;
+
+@property (weak, nonatomic) UIViewController *storePresentingViewController;
+@property (strong, nonatomic) NSArray *requestedScopes;
+
+@property (readonly, nonatomic, getter=isStoreKitAvailable) BOOL storeKitAvailable;
+@property (assign, atomic, getter=isPolling) BOOL polling;
+
+- (NSString *)findLoginSchemeWithSuffix:(NSString *)suffix;
+- (void)beginPollingWithDuration:(NSTimeInterval)duration;
+
+@end
+
+@implementation ADNLogin
 
 - (instancetype)init {
 	self = [super init];
@@ -151,60 +166,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 	return self;
 }
 
-- (BOOL)canOpenURLWithScheme:(NSString *)scheme {
-	return [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@://test-install", scheme]]];
-}
-
-- (NSString *)loginScheme {
-	NSArray *schemes;
-
-	if (kADNLoginSDKScheme.length) {
-		schemes = @[[NSString stringWithFormat:@"adnlogin%@", kADNLoginSDKScheme]];
-	} else {
-		schemes = @[@"adnloginbeta", @"adnlogin"];
-	}
-
-	for (NSString *scheme in schemes) {
-		if ([self canOpenURLWithScheme:scheme]) {
-			return scheme;
-		}
-	}
-
-	return nil;
-}
-
-- (BOOL)isLoginAvailable {
-	return (BOOL)self.loginScheme.length;	
-}
-
-- (void)pollForSignupAvailableWithCompletionBlock:(ADNLoginSignupAvailableCompletionBlock)completionBlock {
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		BOOL value = NO;
-
-		if (self.loginAvailable) {
-			NSString *signupPlistURL = [NSString stringWithFormat:kADNLoginSignupAvailablePListURL, self.clientID, kADNLoginSDKScheme];
-			// TODO: make this asynchronous instead of blocking
-			NSDictionary *signupAvailabilityDictionary = [NSDictionary dictionaryWithContentsOfURL:[NSURL URLWithString:signupPlistURL]];
-			if ([signupAvailabilityDictionary[@"SignupAvailable"] isEqualToValue:[NSNumber numberWithBool:YES]]) {
-				value = YES;
-			}
-		}
-
-		if (completionBlock) {
-			dispatch_async(dispatch_get_main_queue(), ^{
-				completionBlock(value);
-			});
-		}
-	});
-}
-
-- (BOOL)loginWithScopes:(NSArray *)scopes {
-	NSString *scopeString = [scopes componentsJoinedByString:@" "] ?: @"";
-	NSDictionary *parameters = @{@"client_id": self.clientID, @"app_pk": @(self.appPK), @"suffix": self.schemeSuffix ?: [NSNull null], @"scope": scopeString};
-	NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://token?%@", self.loginScheme, queryStringForParameters(parameters)]];
-
-	return [[UIApplication sharedApplication] openURL:url];
-}
+#pragma mark - URL Callbacks
 
 - (BOOL)openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
 	if ([url.scheme isEqualToString:self.primaryScheme]) {
@@ -213,21 +175,32 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 		}
 
 		NSDictionary *parameters = parametersForQueryString(url.fragment);
-		NSString *accessToken = parameters[@"access_token"];
-		NSString *userID = parameters[@"user_id"];
-		if (accessToken) {
-			dispatch_async(dispatch_get_main_queue(), ^{
-				if ([self.delegate respondsToSelector:@selector(adnLoginDidSucceedForUserWithID:token:)]) {
-					[self.delegate adnLoginDidSucceedForUserWithID:userID token:accessToken];
-				}
-			});
-		} else {
-			NSString *errorMessage = parameters[@"error"] ?: @"Error logging in.";
-			NSError *error = [NSError errorWithDomain:kADNLoginErrorDomain code:0 userInfo:@{NSLocalizedDescriptionKey: errorMessage}];
 
+		if ([url.host isEqualToString:@"return"]) {
+			NSString *accessToken = parameters[@"access_token"];
+			NSString *userID = parameters[@"user_id"];
+			NSString *username = parameters[@"username"];
+			NSString *errorMessage = parameters[@"error"];
+
+			if (accessToken) {
+				dispatch_async(dispatch_get_main_queue(), ^{
+					if ([self.delegate respondsToSelector:@selector(adnLoginDidSucceedForUserWithID:username:token:)]) {
+						[self.delegate adnLoginDidSucceedForUserWithID:userID username:username token:accessToken];
+					}
+				});
+			} else if (errorMessage) {
+				NSError *error = [NSError errorWithDomain:kADNLoginErrorDomain code:0 userInfo:@{NSLocalizedDescriptionKey: errorMessage}];
+
+				dispatch_async(dispatch_get_main_queue(), ^{
+					if ([self.delegate respondsToSelector:@selector(adnLoginDidFailWithError:)]) {
+						[self.delegate adnLoginDidFailWithError:error];
+					}
+				});
+			}
+		} else if ([url.host isEqualToString:@"find-friends-return"]) {
 			dispatch_async(dispatch_get_main_queue(), ^{
-				if ([self.delegate respondsToSelector:@selector(adnLoginDidFailWithError:)]) {
-					[self.delegate adnLoginDidFailWithError:error];
+				if ([self.delegate respondsToSelector:@selector(adnLoginDidEndFindFriends)]) {
+					[self.delegate adnLoginDidEndFindFriends];
 				}
 			});
 		}
@@ -235,13 +208,200 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 		return YES;
 	}
 
-	NSLog(@"Couldn't open URL");
+	return NO;
+}
+
+#pragma mark - Launching Passport
+
+- (BOOL)canOpenURLWithScheme:(NSString *)scheme {
+	return [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@://test-install", scheme]]];
+}
+
+- (NSString *)findLoginSchemeWithSuffix:(NSString *)suffix {
+	NSArray *schemes;
+
+	if (kADNLoginSDKScheme.length) {
+		schemes = @[kADNLoginSDKScheme];
+	} else {
+		schemes = @[@"beta", @""];
+	}
+
+	for (NSString *scheme in schemes) {
+		NSString *fullScheme = [NSString stringWithFormat:@"adnlogin%@%@", scheme, suffix ?: @""];
+		if ([self canOpenURLWithScheme:fullScheme]) {
+			return fullScheme;
+		}
+	}
+
+	return nil;
+}
+
+- (BOOL)isLoginAvailable {
+	return [self findLoginSchemeWithSuffix:nil];
+}
+
+- (BOOL)isFindFriendsAvailable {
+	return [self findLoginSchemeWithSuffix:@"ff"];
+}
+
+- (BOOL)isStoreKitAvailable {
+#ifdef __IPHONE_6_0
+	if ([SKStoreProductViewController class]) {
+		return YES;
+	}
+#endif
 
 	return NO;
 }
 
-- (BOOL)installLoginApp {
-	return [[UIApplication sharedApplication] openURL:[NSURL URLWithString:kADNLoginAppInstallURL]];
+- (BOOL)loginWithScopes:(NSArray *)scopes {
+	NSString *scheme = [self findLoginSchemeWithSuffix:nil];
+
+	NSDictionary *parameters = @{
+		@"client_id": self.clientID,
+		@"app_pk": @(self.appPK),
+		@"suffix": self.schemeSuffix ?: [NSNull null],
+		@"scope": [scopes componentsJoinedByString:@" "] ?: @"",
+		@"sdk_version": kADNLoginSDKVersion,
+	};
+
+	NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://token?%@", scheme, queryStringForParameters(parameters)]];
+	return [[UIApplication sharedApplication] openURL:url];
+}
+
+- (BOOL)launchFindFriends {
+	NSString *scheme = [self findLoginSchemeWithSuffix:@"ff"];
+
+	NSDictionary *parameters = @{
+		@"client_id": self.clientID,
+		@"app_pk": @(self.appPK),
+		@"suffix": self.schemeSuffix ?: [NSNull null],
+		@"sdk_version": kADNLoginSDKVersion,
+	};
+
+	NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://find-friends?%@", scheme, queryStringForParameters(parameters)]];
+	return [[UIApplication sharedApplication] openURL:url];
+}
+
+- (void)stashBreadcrumbsOnPasteboard {
+	NSDictionary *breadcrumbs = @{
+		@"crumb_version": @(1),
+		@"crumb_ts": @([[NSDate date] timeIntervalSince1970]),
+		@"client_id": self.clientID,
+		@"app_pk": @(self.appPK),
+		@"suffix": self.schemeSuffix ?: [NSNull null],
+		@"sdk_version": kADNLoginSDKVersion,
+	};
+
+	UIPasteboard *pb = [UIPasteboard pasteboardWithName:kADNLoginCrumbPasteboardName create:YES];
+	NSError *err;
+	NSData *plistData = [NSPropertyListSerialization dataWithPropertyList:breadcrumbs format:NSPropertyListBinaryFormat_v1_0
+																  options:NSPropertyListImmutable error:&err];
+	if (err != nil) {
+		NSLog(@"[ADNLogin] Breadcrumb serialization failed: %@", [err description]);
+	} else {
+		[pb setData:plistData forPasteboardType:kADNLoginCrumbPasteboardType];
+	}
+}
+
+- (BOOL)presentModalStoreControllerOnViewController:(UIViewController *)presentingViewController scopes:(NSArray *)scopes {
+	[self stashBreadcrumbsOnPasteboard];
+
+	self.requestedScopes = scopes;
+
+#ifdef __IPHONE_6_0
+		if (self.storeKitAvailable) {
+			if (self.storePresentingViewController != nil) {
+				return NO;
+			}
+
+			self.storePresentingViewController = presentingViewController;
+
+			// if already polling for Passport, stop
+			[self cancelPolling];
+
+			dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+				SKStoreProductViewController *storeController = [[SKStoreProductViewController alloc] init];
+				storeController.delegate = self;
+				NSDictionary *productInfo = @{SKStoreProductParameterITunesItemIdentifier: kADNLoginAppInstalliTunesID};
+				[storeController loadProductWithParameters:productInfo completionBlock:^(BOOL result, NSError *error) {
+					if (result) {
+						[self.storePresentingViewController presentViewController:storeController animated:YES completion:nil];
+					} else {
+						NSLog(@"[ADNLogin] Error loading product info: %@", error);
+
+						if ([self.delegate respondsToSelector:@selector(adnLoginDidEndPollingWithSuccess:)]) {
+							[self.delegate adnLoginDidEndPollingWithSuccess:NO];
+						}
+					}
+				}];
+			});
+
+			return YES;
+		}
+#endif
+
+	NSURL *installURL = [NSURL URLWithString:[NSString stringWithFormat:kADNLoginAppInstallURLTemplate, kADNLoginAppInstalliTunesID]];
+	if ([[UIApplication sharedApplication] openURL:installURL]) {
+		[self beginPollingWithDuration:kADNLoginLongPollingDuration];
+
+		return YES;
+	}
+
+	return NO;
+}
+
+#pragma mark - SKStoreProductViewControllerDelegate
+
+- (void)productViewControllerDidFinish:(SKStoreProductViewController *)viewController {
+	UIViewController *presentingViewController = self.storePresentingViewController;
+	self.storePresentingViewController = nil;
+
+	[self beginPollingWithDuration:kADNLoginShortPollingDuration];
+
+	[self.storePresentingViewController dismissViewControllerAnimated:YES completion:nil];
+}
+
+#pragma mark - Polling
+
+- (void)beginPollingWithDuration:(NSTimeInterval)duration {
+	if (self.polling) return;
+
+	if (!([self.delegate respondsToSelector:@selector(adnLoginWillBeginPolling)] && [self.delegate adnLoginWillBeginPolling])) {
+		dispatch_time_t timeoutTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(duration * NSEC_PER_SEC));
+		dispatch_after(timeoutTime, dispatch_get_main_queue(), ^(void){
+			[self cancelPolling];
+
+			if ([self.delegate respondsToSelector:@selector(adnLoginDidEndPollingWithSuccess:)]) {
+				[self.delegate adnLoginDidEndPollingWithSuccess:NO];
+			}
+		});
+	}
+}
+
+- (void)enqueuePollWithDuration:(NSTimeInterval)duration {
+	if (!self.polling) return;
+
+	dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(duration * NSEC_PER_SEC));
+	dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+		BOOL isInstalled = [self isLoginAvailable];
+
+		if (self.polling) {
+			if (isInstalled) {
+				[self cancelPolling];
+
+				if (!([self.delegate respondsToSelector:@selector(adnLoginDidEndPollingWithSuccess:)] && [self.delegate adnLoginDidEndPollingWithSuccess:YES])) {
+					[self loginWithScopes:self.requestedScopes];
+				}
+			} else {
+				[self enqueuePollWithDuration:duration];
+			}
+		}
+	});
+}
+
+- (void)cancelPolling {
+	self.polling = NO;
 }
 
 @end

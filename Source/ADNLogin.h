@@ -23,24 +23,27 @@
 
 #import <Foundation/Foundation.h>
 
-@class ADNLogin;
+#ifdef __IPHONE_6_0
+#import <StoreKit/StoreKit.h>
+#endif
 
-typedef void (^ADNLoginSignupAvailableCompletionBlock)(BOOL available);
+@class ADNLogin;
 
 static NSString *const kADNLoginErrorDomain = @"ADNLoginErrorDomain";
 
 /**
- The `ADNLoginDelegate` protocol defines the methods the ADNLogin SDK will use to communicate state with your app. Typically this will be implemented by your app delegate.
+ The `ADNLoginDelegate` protocol defines the methods the ADNLogin SDK will use to communicate state with your app.
+ Typically this will be implemented by your app delegate.
  */
 @protocol ADNLoginDelegate <NSObject>
 
 /**
- Called when fast-switching back from the App.net app with valid login credentials.
+ Called when fast-switching back from App.net Passport with valid login credentials.
  
  @param userID The user ID of the logged-in user.
  @param accessToken An access token authorized with the requested permissions.
 */
-- (void)adnLoginDidSucceedForUserWithID:(NSString *)userID token:(NSString *)accessToken;
+- (void)adnLoginDidSucceedForUserWithID:(NSString *)userID username:(NSString *)username token:(NSString *)accessToken;
 
 /**
  Called when login has failed.
@@ -49,6 +52,32 @@ static NSString *const kADNLoginErrorDomain = @"ADNLoginErrorDomain";
 */
 - (void)adnLoginDidFailWithError:(NSError *)error;
 
+@optional
+
+/**
+ Called when polling for App.net Passport has begun. You may wish to display an activity indicator.
+ Not implementing this delegate method is the same as returning `NO`.
+
+ @return `YES` to indicate that you will handle detection/launch of App.net Passport. `NO` to let the ADNLogin SDK handle this.
+*/
+- (BOOL)adnLoginWillBeginPolling;
+
+/**
+ Called when polling for App.net Passport has completed. If you displayed an activity indicator
+ when polling began, you may wish to stop or hide it now.
+ Not implementing this delegate method is the same as returning `NO`.
+ 
+ @param success whether or not Passport was detected when polling ended
+ 
+ @return `YES` to indicate you will handle launch of Passport. `NO` to automatically launch Passport.
+ */
+- (BOOL)adnLoginDidEndPollingWithSuccess:(BOOL)success;
+
+/**
+ Called when finding friends with App.net Passport has completed.
+ */
+- (void)adnLoginDidEndFindFriends;
+
 @end
 
 
@@ -56,6 +85,9 @@ static NSString *const kADNLoginErrorDomain = @"ADNLoginErrorDomain";
  The primary object in the ADNLogin SDK. Generally, you will create an instance of this and store it on your app delegate.
  */
 @interface ADNLogin : NSObject
+#ifdef __IPHONE_6_0
+<SKStoreProductViewControllerDelegate>
+#endif
 
 /**
  The SDK delegate.
@@ -63,23 +95,37 @@ static NSString *const kADNLoginErrorDomain = @"ADNLoginErrorDomain";
 @property (weak, nonatomic) NSObject<ADNLoginDelegate> *delegate;
 
 /**
- Whether or not ADNLogin-assisted authentication is available. This can be used to detect whether the App.net app is installed. If this is `NO`, your app should fall back to another login method, like the password flow.
+ Whether or not App.net Passport-assisted authentication is available.
+ This can be used to detect whether App.net Passport is installed.
+
+ If this is `NO`, your app should fall back to another login method, like the password flow.
  */
 @property (readonly, nonatomic, getter=isLoginAvailable) BOOL loginAvailable;
 
+/**
+ Whether or not App.net Passport is installed and able to support launching the find friends feature directly.
+ */
+@property (readonly, nonatomic, getter=isFindFriendsAvailable) BOOL findFriendsAvailable;
 
 /**
  Request login.
- 
+
  @param scopes A list of the requested authentication scopes.
- 
- @return `YES` if the App.net was launched to request login, `NO` if it was not installed or unable to open
+
+ @return `YES` if App.net Passport was launched to request login, `NO` if it was not installed or unable to open
  */
 - (BOOL)loginWithScopes:(NSArray *)scopes;
+
+/**
+ Request that App.net Passport launch the find friends feature.
+
+ @return `YES` if App.net Passport was launched, `NO` if it was not installed, too old or unable to open
+ */
+- (BOOL)launchFindFriends;
  
 /**
  Call this method from your app delegate's `application:openURL:sourceApplication:annotation:` method.
- 
+
  @param url The URL of the request
  @param sourceApplication The bundle ID of the opening application
  @param annotation The supplied annotation
@@ -89,19 +135,17 @@ static NSString *const kADNLoginErrorDomain = @"ADNLoginErrorDomain";
 - (BOOL)openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation;
 
 /**
- Determine whether signup (without an invite) is currently available. Signup with invite link is always available in the app.
+ Request that App.net Passport be installed. Uses StoreKit to present a modal controller if possible.
 
- @param completionBlock Block to be called with the result of the signup availability check.
- 
- @discussion Makes a network call on a background thread.
- */
-- (void)pollForSignupAvailableWithCompletionBlock:(ADNLoginSignupAvailableCompletionBlock)completionBlock;
+ @param url The view controller that should present the store.
 
-/**
- Request that the App.net app be installed. Right now, this is designed to open the App Store app via a URL scheme, but may be extended to use StoreKit in the future.
- 
  @return `YES` if the App Store app was launched, `NO` if it was unable to open
  */
-- (BOOL)installLoginApp;
+- (BOOL)presentModalStoreControllerOnViewController:(UIViewController *)presentingViewController scopes:(NSArray *)scopes;
+
+/**
+ Request that the SDK stop polling for App.net Passport. The delegate method for indicating the end of polling WILL NOT be called.
+*/
+- (void)cancelPolling;
 
 @end

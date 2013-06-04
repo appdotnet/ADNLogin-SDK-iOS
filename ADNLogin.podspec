@@ -15,6 +15,6 @@ Pod::Spec.new do |s|
     s.ios.deployment_target = '5.0'
     s.source_files = 'Source/*.{h,m}'
     s.public_header_files = 'Source/ADNLogin.h'
-    s.frameworks = 'Foundation', 'Security'
+    s.frameworks = 'Foundation', 'Security', 'StoreKit'
     s.requires_arc = true
 end
