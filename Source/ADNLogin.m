@@ -104,7 +104,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 @property (readonly, nonatomic, getter=isStoreKitAvailable) BOOL storeKitAvailable;
 @property (assign, atomic, getter=isPolling) BOOL polling;
 
-- (NSString *)findLoginSchemeWithSuffix:(NSString *)suffix;
+- (NSString *)findLoginSchemeWithSuffix:(NSString *)suffix forStoreDetection:(BOOL)forStoreDetection;
 - (void)beginPollingWithDuration:(NSTimeInterval)duration;
 
 @end
@@ -217,10 +217,12 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 	return [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@://test-install", scheme]]];
 }
 
-- (NSString *)findLoginSchemeWithSuffix:(NSString *)suffix {
+- (NSString *)findLoginSchemeWithSuffix:(NSString *)suffix forStoreDetection:(BOOL)forStoreDetection {
 	NSArray *schemes;
 
-	if (kADNLoginSDKScheme.length) {
+	if (forStoreDetection) {
+		schemes = @[@""];
+	} else if (kADNLoginSDKScheme.length) {
 		schemes = @[kADNLoginSDKScheme];
 	} else {
 		schemes = @[@"beta", @""];
@@ -237,11 +239,11 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 }
 
 - (BOOL)isLoginAvailable {
-	return [self findLoginSchemeWithSuffix:nil];
+	return [self findLoginSchemeWithSuffix:nil forStoreDetection:YES];
 }
 
 - (BOOL)isFindFriendsAvailable {
-	return [self findLoginSchemeWithSuffix:@"ff"];
+	return [self findLoginSchemeWithSuffix:@"ff" forStoreDetection:NO];
 }
 
 - (BOOL)isStoreKitAvailable {
@@ -255,7 +257,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 }
 
 - (BOOL)loginWithScopes:(NSArray *)scopes {
-	NSString *scheme = [self findLoginSchemeWithSuffix:nil];
+	NSString *scheme = [self findLoginSchemeWithSuffix:nil forStoreDetection:NO];
 
 	NSDictionary *parameters = @{
 		@"client_id": self.clientID,
@@ -270,7 +272,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 }
 
 - (BOOL)launchFindFriends {
-	NSString *scheme = [self findLoginSchemeWithSuffix:@"ff"];
+	NSString *scheme = [self findLoginSchemeWithSuffix:@"ff" forStoreDetection:NO];
 
 	NSDictionary *parameters = @{
 		@"client_id": self.clientID,
@@ -294,6 +296,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 	};
 
 	UIPasteboard *pb = [UIPasteboard pasteboardWithName:kADNLoginCrumbPasteboardName create:YES];
+	pb.persistent = YES;
 	NSError *err;
 	NSData *plistData = [NSPropertyListSerialization dataWithPropertyList:breadcrumbs format:NSPropertyListBinaryFormat_v1_0
 																  options:NSPropertyListImmutable error:&err];
@@ -376,13 +379,16 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 				[self.delegate adnLoginDidEndPollingWithSuccess:NO];
 			}
 		});
+
+		self.polling = YES;
+		[self enqueuePoll];
 	}
 }
 
-- (void)enqueuePollWithDuration:(NSTimeInterval)duration {
+- (void)enqueuePoll {
 	if (!self.polling) return;
 
-	dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(duration * NSEC_PER_SEC));
+	dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kADNLoginPollingInterval * NSEC_PER_SEC));
 	dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
 		BOOL isInstalled = [self isLoginAvailable];
 
@@ -394,7 +400,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 					[self loginWithScopes:self.requestedScopes];
 				}
 			} else {
-				[self enqueuePollWithDuration:duration];
+				[self enqueuePoll];
 			}
 		}
 	});
