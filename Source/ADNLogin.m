@@ -295,8 +295,12 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 		@"sdk_version": kADNLoginSDKVersion,
 	};
 
+	// Not sure why this has to be here, but it doesn't work without it.
+	// Superstitious engineering truly is the best kind of engineering.
+	[UIPasteboard removePasteboardWithName:kADNLoginCrumbPasteboardName];
 	UIPasteboard *pb = [UIPasteboard pasteboardWithName:kADNLoginCrumbPasteboardName create:YES];
 	pb.persistent = YES;
+
 	NSError *err;
 	NSData *plistData = [NSPropertyListSerialization dataWithPropertyList:breadcrumbs format:NSPropertyListBinaryFormat_v1_0
 																  options:NSPropertyListImmutable error:&err];
