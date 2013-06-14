@@ -285,35 +285,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 	return [[UIApplication sharedApplication] openURL:url];
 }
 
-- (void)stashBreadcrumbsOnPasteboard {
-	NSDictionary *breadcrumbs = @{
-		@"crumb_version": @(1),
-		@"crumb_ts": @([[NSDate date] timeIntervalSince1970]),
-		@"client_id": self.clientID,
-		@"app_pk": @(self.appPK),
-		@"suffix": self.schemeSuffix ?: @"",
-		@"sdk_version": kADNLoginSDKVersion,
-	};
-
-	// Not sure why this has to be here, but it doesn't work without it.
-	// Superstitious engineering truly is the best kind of engineering.
-	[UIPasteboard removePasteboardWithName:kADNLoginCrumbPasteboardName];
-	UIPasteboard *pb = [UIPasteboard pasteboardWithName:kADNLoginCrumbPasteboardName create:YES];
-	pb.persistent = YES;
-
-	NSError *err;
-	NSData *plistData = [NSPropertyListSerialization dataWithPropertyList:breadcrumbs format:NSPropertyListBinaryFormat_v1_0
-																  options:NSPropertyListImmutable error:&err];
-	if (err != nil) {
-		NSLog(@"[ADNLogin] Breadcrumb serialization failed: %@", [err description]);
-	} else {
-		[pb setData:plistData forPasteboardType:kADNLoginCrumbPasteboardType];
-	}
-}
-
 - (BOOL)presentModalStoreControllerOnViewController:(UIViewController *)presentingViewController scopes:(NSArray *)scopes {
-	[self stashBreadcrumbsOnPasteboard];
-
 	self.requestedScopes = scopes;
 
 #ifdef __IPHONE_6_0
