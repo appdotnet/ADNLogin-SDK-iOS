@@ -286,6 +286,20 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 	return NO;
 }
 
+#pragma mark - Delegate calls
+
+- (BOOL)willBeginPolling {
+	[[NSNotificationCenter defaultCenter] postNotificationName:kADNLoginWillBeginPollingNotification object:nil userInfo:nil];
+
+	return !([self.delegate respondsToSelector:@selector(adnLoginWillBeginPolling)] && [self.delegate adnLoginWillBeginPolling]);
+}
+
+- (BOOL)didEndPollingWithSuccess:(BOOL)success {
+	[[NSNotificationCenter defaultCenter] postNotificationName:kADNLoginDidEndPollingNotification object:nil userInfo:@{@"success": @(success)}];
+
+	return !([self.delegate respondsToSelector:@selector(adnLoginDidEndPollingWithSuccess:)] && [self.delegate adnLoginDidEndPollingWithSuccess:success]);
+}
+
 #ifdef __IPHONE_6_0
 
 #pragma mark - StoreKit usage (iOS 6 SDK and higher)
@@ -308,9 +322,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 				if (!result) {
 					NSLog(@"[ADNLogin] Error loading product info: %@", error);
 
-					if ([self.delegate respondsToSelector:@selector(adnLoginDidEndPollingWithSuccess:)]) {
-						[self.delegate adnLoginDidEndPollingWithSuccess:NO];
-					}
+					[self didEndPollingWithSuccess:NO];
 				}
 			}];
 		});
@@ -343,10 +355,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 		dispatch_time_t timeoutTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(duration * NSEC_PER_SEC));
 		dispatch_after(timeoutTime, dispatch_get_main_queue(), ^(void){
 			[self cancelPolling];
-
-			if ([self.delegate respondsToSelector:@selector(adnLoginDidEndPollingWithSuccess:)]) {
-				[self.delegate adnLoginDidEndPollingWithSuccess:NO];
-			}
+			[self didEndPollingWithSuccess:NO];
 		});
 
 		self.polling = YES;
@@ -362,10 +371,10 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 		BOOL isInstalled = [self isLoginAvailable];
 
 		if (self.polling) {
-			if (isInstalled) {
+			if (isInstalled && [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive) {
 				[self cancelPolling];
 
-				if (!([self.delegate respondsToSelector:@selector(adnLoginDidEndPollingWithSuccess:)] && [self.delegate adnLoginDidEndPollingWithSuccess:YES])) {
+				if ([self didEndPollingWithSuccess:YES]) {
 					[self login];
 				}
 			} else {

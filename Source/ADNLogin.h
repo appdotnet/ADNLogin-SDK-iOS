@@ -29,7 +29,12 @@
 
 @class ADNLogin;
 
+// Error domain
 static NSString *const kADNLoginErrorDomain = @"ADNLoginErrorDomain";
+
+// Notification names
+static NSString *const kADNLoginWillBeginPollingNotification = @"ADNLoginWillBeginPollingNotification";
+static NSString *const kADNLoginDidEndPollingNotification = @"ADNLoginDidEndPollingNotification";
 
 #ifdef __IPHONE_6_0
 
