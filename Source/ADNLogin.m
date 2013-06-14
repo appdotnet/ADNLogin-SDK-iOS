@@ -39,8 +39,6 @@ static NSString *const kADNLoginSDKVersion = @"2.0.0";
 static NSString *const kADNLoginAppInstallURLTemplate = @"itms-apps://itunes.apple.com/us/app/id%@";
 static NSString *const kADNLoginAppInstalliTunesID = @"534414475";
 
-static NSString *const kADNLoginMissingURLSchemeErrorMessage = @"ADNLogin URL scheme must be in the format 'adnNNNNsuffix'";
-
 static NSString *queryStringEscape(NSString *string, NSStringEncoding encoding) {
 	static NSString *const kAFCharactersToBeEscaped = @":/?&=;+!@#$()~',*";
 	static NSString *const kAFCharactersToLeaveUnescaped = @"[].";
@@ -92,7 +90,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 @interface ADNLogin ()
 
 @property (strong, nonatomic) NSString *clientID;
-@property (assign, nonatomic) NSInteger appPK;
+@property (assign, nonatomic) int64_t appPK;
 @property (strong, nonatomic) NSString *primaryScheme;
 @property (strong, nonatomic) NSString *schemeSuffix;
 
@@ -105,55 +103,63 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 
 @implementation ADNLogin
 
++ (instancetype)sharedInstance {
+	static ADNLogin *sharedInstance;
+
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+		sharedInstance = [[[self class] alloc] init];
+	});
+
+	return sharedInstance;
+}
+
 - (instancetype)init {
 	self = [super init];
 	if (self) {
 		self.clientID = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"ADNLoginClientID"];
-		self.schemeSuffix = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"ADNLoginSchemeSuffix"];
+		self.scopes = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"ADNLoginScopes"] componentsSeparatedByString:@","];
 
 		NSArray *urlTypes = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleURLTypes"];
 		for (NSDictionary *urlType in urlTypes) {
 			NSString *urlName = urlType[@"CFBundleURLName"];
 			if ([urlName hasPrefix:kADNLoginURLNamePrefix]) {
-				// hit
-				NSArray *urlShemes = urlType[@"CFBundleURLSchemes"];
 				self.clientID = [urlName substringFromIndex:[kADNLoginURLNamePrefix length]];
-				self.primaryScheme = [urlShemes lastObject];
+			}
 
-				if (self.primaryScheme.length) {
-					NSScanner *schemeScanner = [NSScanner scannerWithString:self.primaryScheme];
-					if (![schemeScanner scanString:@"adn" intoString:NULL]) {
-						[NSException raise:kADNLoginMissingURLSchemeErrorMessage format:nil];
-					}
+			for (NSString *urlScheme in urlType[@"CFBundleURLSchemes"]) {
+				NSString *suffix;
+				int64_t appPK;
 
-					// possibly scan over "dev" or "beta" if it's there
-					[schemeScanner scanString:kADNLoginSDKScheme intoString:NULL];
-
-					NSInteger appPK = 0;
-
-					if (![schemeScanner scanInteger:&appPK]) {
-						[NSException raise:kADNLoginMissingURLSchemeErrorMessage format:nil];
-					}
-
-					self.appPK = appPK;
-					NSString *suffix;
-
-					[schemeScanner scanCharactersFromSet:[NSCharacterSet lowercaseLetterCharacterSet]
-												  intoString:&suffix];
-
-					self.schemeSuffix = suffix;
-
-					if (![schemeScanner isAtEnd]) {
-						[NSException raise:kADNLoginMissingURLSchemeErrorMessage format:nil];
-					}
-
-					break;
+				NSScanner *schemeScanner = [NSScanner scannerWithString:urlScheme];
+				if (![schemeScanner scanString:@"adn" intoString:NULL]) {
+					continue;
 				}
+
+				// possibly scan over "dev"
+				[schemeScanner scanString:kADNLoginSDKScheme intoString:NULL];
+
+
+				if (![schemeScanner scanLongLong:&appPK] || appPK <= 0) {
+					continue;
+				}
+
+				[schemeScanner scanCharactersFromSet:[NSCharacterSet lowercaseLetterCharacterSet]
+										  intoString:&suffix];
+
+				if (![schemeScanner isAtEnd]) {
+					continue;
+				}
+
+				// if we got here, this could be a URL scheme for login
+				self.primaryScheme = urlScheme;
+				self.appPK = appPK;
+				self.schemeSuffix = suffix;
 			}
 		}
 
-		if (!self.clientID.length || !self.primaryScheme.length) {
-			[NSException raise:kADNLoginMissingURLSchemeErrorMessage format:nil];
+		if (self.appPK <= 0 || !self.clientID.length || !self.primaryScheme.length) {
+			[NSException raise:@"ADNLogin requires the app register for a URL scheme in the format 'adnNNNNsuffix'" format:nil];
 		}
 	}
 
@@ -284,27 +290,23 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 
 #pragma mark - StoreKit usage (iOS 6 SDK and higher)
 
-- (BOOL)presentStoreViewControllerForPassportWithCompletionBlock:(ADNLoginStoreCompletionBlock)completionBlock {
+- (SKStoreProductViewController *)passportProductViewControllerWithCompletionBlock:(ADNLoginStoreCompletionBlock)completionBlock {
 	if ([SKStoreProductViewController class]) {
 		// if already polling for Passport, stop
 		[self cancelPolling];
 
+		SKStoreProductViewController *storeController = [[SKStoreProductViewController alloc] init];
+		NSDictionary *productInfo = @{SKStoreProductParameterITunesItemIdentifier: kADNLoginAppInstalliTunesID};
+		storeController.delegate = self;
+
 		dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-			SKStoreProductViewController *storeController = [[SKStoreProductViewController alloc] init];
-			NSDictionary *productInfo = @{SKStoreProductParameterITunesItemIdentifier: kADNLoginAppInstalliTunesID};
-			storeController.delegate = self;
-
-			if (completionBlock) {
-				completionBlock(storeController, nil);
-			}
-
 			[storeController loadProductWithParameters:productInfo completionBlock:^(BOOL result, NSError *error) {
+				if (completionBlock) {
+					completionBlock(storeController, result, error);
+				}
+
 				if (!result) {
 					NSLog(@"[ADNLogin] Error loading product info: %@", error);
-
-					if (completionBlock) {
-						completionBlock(storeController, error);
-					}
 
 					if ([self.delegate respondsToSelector:@selector(adnLoginDidEndPollingWithSuccess:)]) {
 						[self.delegate adnLoginDidEndPollingWithSuccess:NO];
@@ -313,10 +315,10 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 			}];
 		});
 
-		return YES;
+		return storeController;
 	}
 
-	return NO;
+	return nil;
 }
 
 #pragma mark - SKStoreProductViewControllerDelegate
@@ -324,7 +326,10 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 - (void)productViewControllerDidFinish:(SKStoreProductViewController *)viewController {
 	[self beginPollingWithDuration:kADNLoginShortPollingDuration];
 
-	[viewController.presentingViewController dismissViewControllerAnimated:YES completion:nil];
+	// Do not dismiss if the delegate has been changed.
+	if (viewController.delegate == self) {
+		[viewController.presentingViewController dismissViewControllerAnimated:YES completion:nil];
+	}
 }
 
 #endif

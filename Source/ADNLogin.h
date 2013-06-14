@@ -33,7 +33,7 @@ static NSString *const kADNLoginErrorDomain = @"ADNLoginErrorDomain";
 
 #ifdef __IPHONE_6_0
 
-typedef void (^ADNLoginStoreCompletionBlock)(SKStoreProductViewController *storeViewController, NSError *err);
+typedef void (^ADNLoginStoreCompletionBlock)(SKStoreProductViewController *storeViewController, BOOL result, NSError *error);
 
 #endif
 
@@ -88,12 +88,17 @@ typedef void (^ADNLoginStoreCompletionBlock)(SKStoreProductViewController *store
 
 
 /**
- The primary object in the ADNLogin SDK. Generally, you will create an instance of this and store it on your app delegate.
+ The primary object in the ADNLogin SDK. Generally, you will use the `+sharedInstance` method to create this object.
  */
 @interface ADNLogin : NSObject
 #ifdef __IPHONE_6_0
 <SKStoreProductViewControllerDelegate>
 #endif
+
+/**
+ A SDK-managed singleton instance of the ADNLogin SDK.
+ */
++ (instancetype)sharedInstance;
 
 /**
  The SDK delegate.
@@ -115,6 +120,7 @@ typedef void (^ADNLoginStoreCompletionBlock)(SKStoreProductViewController *store
 
 /**
  Authorization scopes to request when logging in or launching passport.
+ Often populated from the `ADNLoginScopes` Info.plist key.
  */
 @property (strong, nonatomic) NSArray *scopes;
 
@@ -145,14 +151,24 @@ typedef void (^ADNLoginStoreCompletionBlock)(SKStoreProductViewController *store
  */
 - (BOOL)launchFindFriends;
 
+#ifdef __IPHONE_6_0
+
 /**
- Request that App.net Passport be installed. Uses StoreKit to present a modal controller if possible.
+ Request that App.net Passport be installed. Uses StoreKit to present the purchase interface in-app.
+ This is the preferred mechanism to install Passport. If it returns `nil`, try calling `openStoreForPassport`.
+ 
+ You should present the view controller as you prefer. The controller's delegate will be set to ADNLogin by default,
+ and ADNLogin will automatically dismiss it when it is complete. You may change the controller's delegate if you wish.
+ To begin the polling process, ensure that you call ADNLogin's `productViewControllerDidFinish:` method. If you
+ have changed the delegate, you are responsible for dismissing the product view controller.
 
- @param completionBlock A block containing a SKStoreProductViewController and (optionally) an NSError. You should present the SKStoreProductViewController as you wish. The block may be called multiple times. If you have presented the store view controller, you should dismiss it if you receive a subsequent call with an error.
-
- @return `YES` if the StoreKit was available, `NO` if not (e.g., when running on iOS < 6.0)
+ @param completionBlock A block called when the product controller has finished loading or returned an error.
+ 
+ @return A `SKStoreProductViewController *` if StoreKit was available, `nil` if not (e.g., when running on iOS < 6.0)
  */
-- (BOOL)presentStoreViewControllerForPassportWithCompletionBlock:(ADNLoginStoreCompletionBlock)completionBlock;
+- (SKStoreProductViewController *)passportProductViewControllerWithCompletionBlock:(ADNLoginStoreCompletionBlock)completionBlock;
+
+#endif
 
 /**
  Launch the App Store for App.net Passport. Does not use StoreKit -- use this method if StoreKit is unavailable.
