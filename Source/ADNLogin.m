@@ -35,8 +35,6 @@
 static NSString *const kADNLoginSDKScheme = ADNLOGIN_SDK_SCHEME;
 static NSString *const kADNLoginURLNamePrefix = @"net.app.client.";
 static NSString *const kADNLoginSDKVersion = @"2.0.0";
-static NSString *const kADNLoginCrumbPasteboardName = @"net.app.adnlogin.breadcrumb";
-static NSString *const kADNLoginCrumbPasteboardType = @"net.app.adnlogin.breadcrumb.plist";
 
 static NSString *const kADNLoginAppInstallURLTemplate = @"itms-apps://itunes.apple.com/us/app/id%@";
 static NSString *const kADNLoginAppInstalliTunesID = @"534414475";
@@ -98,10 +96,6 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 @property (strong, nonatomic) NSString *primaryScheme;
 @property (strong, nonatomic) NSString *schemeSuffix;
 
-@property (weak, nonatomic) UIViewController *storePresentingViewController;
-@property (strong, nonatomic) NSArray *requestedScopes;
-
-@property (readonly, nonatomic, getter=isStoreKitAvailable) BOOL storeKitAvailable;
 @property (assign, atomic, getter=isPolling) BOOL polling;
 
 - (NSString *)findLoginSchemeWithSuffix:(NSString *)suffix forStoreDetection:(BOOL)forStoreDetection;
@@ -246,24 +240,14 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 	return [self findLoginSchemeWithSuffix:@"ff" forStoreDetection:NO];
 }
 
-- (BOOL)isStoreKitAvailable {
-#ifdef __IPHONE_6_0
-	if ([SKStoreProductViewController class]) {
-		return YES;
-	}
-#endif
-
-	return NO;
-}
-
-- (BOOL)loginWithScopes:(NSArray *)scopes {
+- (BOOL)login {
 	NSString *scheme = [self findLoginSchemeWithSuffix:nil forStoreDetection:NO];
 
 	NSDictionary *parameters = @{
 		@"client_id": self.clientID,
 		@"app_pk": @(self.appPK),
 		@"suffix": self.schemeSuffix ?: [NSNull null],
-		@"scope": [scopes componentsJoinedByString:@" "] ?: @"",
+		@"scope": [self.scopes componentsJoinedByString:@" "] ?: @"",
 		@"sdk_version": kADNLoginSDKVersion,
 	};
 
@@ -285,41 +269,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 	return [[UIApplication sharedApplication] openURL:url];
 }
 
-- (BOOL)presentModalStoreControllerOnViewController:(UIViewController *)presentingViewController scopes:(NSArray *)scopes {
-	self.requestedScopes = scopes;
-
-#ifdef __IPHONE_6_0
-		if (self.storeKitAvailable) {
-			if (self.storePresentingViewController != nil) {
-				return NO;
-			}
-
-			self.storePresentingViewController = presentingViewController;
-
-			// if already polling for Passport, stop
-			[self cancelPolling];
-
-			dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-				SKStoreProductViewController *storeController = [[SKStoreProductViewController alloc] init];
-				storeController.delegate = self;
-				NSDictionary *productInfo = @{SKStoreProductParameterITunesItemIdentifier: kADNLoginAppInstalliTunesID};
-				[storeController loadProductWithParameters:productInfo completionBlock:^(BOOL result, NSError *error) {
-					if (result) {
-						[self.storePresentingViewController presentViewController:storeController animated:YES completion:nil];
-					} else {
-						NSLog(@"[ADNLogin] Error loading product info: %@", error);
-
-						if ([self.delegate respondsToSelector:@selector(adnLoginDidEndPollingWithSuccess:)]) {
-							[self.delegate adnLoginDidEndPollingWithSuccess:NO];
-						}
-					}
-				}];
-			});
-
-			return YES;
-		}
-#endif
-
+- (BOOL)openStoreForPassport {
 	NSURL *installURL = [NSURL URLWithString:[NSString stringWithFormat:kADNLoginAppInstallURLTemplate, kADNLoginAppInstalliTunesID]];
 	if ([[UIApplication sharedApplication] openURL:installURL]) {
 		[self beginPollingWithDuration:kADNLoginLongPollingDuration];
@@ -330,16 +280,54 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 	return NO;
 }
 
+#ifdef __IPHONE_6_0
+
+#pragma mark - StoreKit usage (iOS 6 SDK and higher)
+
+- (BOOL)presentStoreViewControllerForPassportWithCompletionBlock:(ADNLoginStoreCompletionBlock)completionBlock {
+	if ([SKStoreProductViewController class]) {
+		// if already polling for Passport, stop
+		[self cancelPolling];
+
+		dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+			SKStoreProductViewController *storeController = [[SKStoreProductViewController alloc] init];
+			NSDictionary *productInfo = @{SKStoreProductParameterITunesItemIdentifier: kADNLoginAppInstalliTunesID};
+			storeController.delegate = self;
+
+			if (completionBlock) {
+				completionBlock(storeController, nil);
+			}
+
+			[storeController loadProductWithParameters:productInfo completionBlock:^(BOOL result, NSError *error) {
+				if (!result) {
+					NSLog(@"[ADNLogin] Error loading product info: %@", error);
+
+					if (completionBlock) {
+						completionBlock(storeController, error);
+					}
+
+					if ([self.delegate respondsToSelector:@selector(adnLoginDidEndPollingWithSuccess:)]) {
+						[self.delegate adnLoginDidEndPollingWithSuccess:NO];
+					}
+				}
+			}];
+		});
+
+		return YES;
+	}
+
+	return NO;
+}
+
 #pragma mark - SKStoreProductViewControllerDelegate
 
 - (void)productViewControllerDidFinish:(SKStoreProductViewController *)viewController {
-	UIViewController *presentingViewController = self.storePresentingViewController;
-	self.storePresentingViewController = nil;
-
 	[self beginPollingWithDuration:kADNLoginShortPollingDuration];
 
-	[presentingViewController dismissViewControllerAnimated:YES completion:nil];
+	[viewController.presentingViewController dismissViewControllerAnimated:YES completion:nil];
 }
+
+#endif
 
 #pragma mark - Polling
 
@@ -373,7 +361,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 				[self cancelPolling];
 
 				if (!([self.delegate respondsToSelector:@selector(adnLoginDidEndPollingWithSuccess:)] && [self.delegate adnLoginDidEndPollingWithSuccess:YES])) {
-					[self loginWithScopes:self.requestedScopes];
+					[self login];
 				}
 			} else {
 				[self enqueuePoll];

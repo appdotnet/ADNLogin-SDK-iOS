@@ -31,6 +31,12 @@
 
 static NSString *const kADNLoginErrorDomain = @"ADNLoginErrorDomain";
 
+#ifdef __IPHONE_6_0
+
+typedef void (^ADNLoginStoreCompletionBlock)(SKStoreProductViewController *storeViewController, NSError *err);
+
+#endif
+
 /**
  The `ADNLoginDelegate` protocol defines the methods the ADNLogin SDK will use to communicate state with your app.
  Typically this will be implemented by your app delegate.
@@ -108,13 +114,29 @@ static NSString *const kADNLoginErrorDomain = @"ADNLoginErrorDomain";
 @property (readonly, nonatomic, getter=isFindFriendsAvailable) BOOL findFriendsAvailable;
 
 /**
+ Authorization scopes to request when logging in or launching passport.
+ */
+@property (strong, nonatomic) NSArray *scopes;
+
+/**
+ Call this method from your app delegate's `application:openURL:sourceApplication:annotation:` method.
+
+ @param url The URL of the request
+ @param sourceApplication The bundle ID of the opening application
+ @param annotation The supplied annotation
+
+ @return `YES` if the ADNLogin SDK handled the request, `NO` if it did not
+ */
+- (BOOL)openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation;
+
+/**
  Request login.
 
  @param scopes A list of the requested authentication scopes.
 
  @return `YES` if App.net Passport was launched to request login, `NO` if it was not installed or unable to open
  */
-- (BOOL)loginWithScopes:(NSArray *)scopes;
+- (BOOL)login;
 
 /**
  Request that App.net Passport launch the find friends feature.
@@ -122,26 +144,22 @@ static NSString *const kADNLoginErrorDomain = @"ADNLoginErrorDomain";
  @return `YES` if App.net Passport was launched, `NO` if it was not installed, too old or unable to open
  */
 - (BOOL)launchFindFriends;
- 
-/**
- Call this method from your app delegate's `application:openURL:sourceApplication:annotation:` method.
-
- @param url The URL of the request
- @param sourceApplication The bundle ID of the opening application
- @param annotation The supplied annotation
- 
- @return `YES` if the ADNLogin SDK handled the request, `NO` if it did not
- */
-- (BOOL)openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation;
 
 /**
  Request that App.net Passport be installed. Uses StoreKit to present a modal controller if possible.
 
- @param url The view controller that should present the store.
+ @param completionBlock A block containing a SKStoreProductViewController and (optionally) an NSError. You should present the SKStoreProductViewController as you wish. The block may be called multiple times. If you have presented the store view controller, you should dismiss it if you receive a subsequent call with an error.
 
- @return `YES` if the App Store app was launched, `NO` if it was unable to open
+ @return `YES` if the StoreKit was available, `NO` if not (e.g., when running on iOS < 6.0)
  */
-- (BOOL)presentModalStoreControllerOnViewController:(UIViewController *)presentingViewController scopes:(NSArray *)scopes;
+- (BOOL)presentStoreViewControllerForPassportWithCompletionBlock:(ADNLoginStoreCompletionBlock)completionBlock;
+
+/**
+ Launch the App Store for App.net Passport. Does not use StoreKit -- use this method if StoreKit is unavailable.
+
+ @return `YES` if the App Store was launched, `NO` if not
+ */
+- (BOOL)openStoreForPassport;
 
 /**
  Request that the SDK stop polling for App.net Passport. The delegate method for indicating the end of polling WILL NOT be called.
