@@ -1,5 +1,5 @@
 //
-//  ADNLoginView.m
+//  ADNPassportLaunchView.m
 //  ADNSDK
 //
 //  Created by Bryan Berg on 6/14/13.
@@ -21,11 +21,11 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import "ADNLoginView.h"
+#import "ADNPassportLaunchView.h"
 
 #import "ADNLogin.h"
 
-@implementation ADNLoginView
+@implementation ADNPassportLaunchView
 
 - (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
@@ -138,9 +138,9 @@
 
 - (void)installClicked:(id)sender {
 	if ([[ADNLogin sharedInstance] isLoginAvailable]) {
-		[self.delegate adnLoginViewDidRequestLogin:self];
+		[self.delegate adnPassportLaunchViewDidRequestLogin:self];
 	} else {
-		[self.delegate adnLoginViewDidRequestInstall:self];
+		[self.delegate adnPassportLaunchViewDidRequestInstall:self];
 	}
 }
 

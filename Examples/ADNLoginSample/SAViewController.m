@@ -19,10 +19,10 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-	ADNLoginView *loginView = [[ADNLoginView alloc] initWithFrame:CGRectZero];
-	loginView.delegate = self;
-	[self.view addSubview:loginView];
-	self.loginView = loginView;
+	ADNPassportLaunchView *passportLaunchView = [[ADNPassportLaunchView alloc] initWithFrame:CGRectZero];
+	passportLaunchView.delegate = self;
+	[self.view addSubview:passportLaunchView];
+	self.passportLaunchView = passportLaunchView;
 
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(adnLoginDidEndPolling:) name:kADNLoginDidEndPollingNotification object:nil];
 }
@@ -30,29 +30,29 @@
 - (void)viewDidAppear:(BOOL)animated {
 	[super viewDidAppear:animated];
 
-	if (!self.loginViewShown) {
-		self.loginViewShown = YES;
-		[self.loginView animateToVisibleStateWithCompletion:nil];
+	if (!self.passportLaunchViewShown) {
+		self.passportLaunchViewShown = YES;
+		[self.passportLaunchView animateToVisibleStateWithCompletion:nil];
 	}
 }
 
 - (void)viewDidUnload {
 	[super viewDidUnload];
 
-	self.loginViewShown = NO;
+	self.passportLaunchViewShown = NO;
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 #pragma mark - Observers
 
 - (void)adnLoginDidEndPolling:(NSNotification *)notification {
-	[self.loginView animateToVisibleStateWithCompletion:nil];
+	[self.passportLaunchView animateToVisibleStateWithCompletion:nil];
 }
 
-#pragma mark - ADNLoginViewDelegate
+#pragma mark - ADNPassportLaunchViewDelegate
 
-- (void)adnLoginViewDidRequestInstall:(ADNLoginView *)loginView {
-	[self.loginView animateToPollingStateWithCompletion:nil];
+- (void)adnPassportLaunchViewDidRequestInstall:(ADNPassportLaunchView *)passportLaunchView {
+	[self.passportLaunchView animateToPollingStateWithCompletion:nil];
 
 	[[ADNLogin sharedInstance] passportProductViewControllerWithCompletionBlock:^(SKStoreProductViewController *storeViewController, BOOL result, NSError *error) {
 		if (error == nil) {
@@ -63,7 +63,7 @@
 	}];
 }
 
-- (void)adnLoginViewDidRequestLogin:(ADNLoginView *)loginView {
+- (void)adnPassportLaunchViewDidRequestLogin:(ADNPassportLaunchView *)passportLaunchView {
 	[[ADNLogin sharedInstance] login];
 }
 

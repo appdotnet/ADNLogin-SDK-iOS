@@ -1,5 +1,5 @@
 //
-//  ADNLoginView.h
+//  ADNPassportLaunchView.h
 //  ADNSDK
 //
 //  Created by Bryan Berg on 6/14/13.
@@ -23,18 +23,18 @@
 
 #import <UIKit/UIKit.h>
 
-@class ADNLoginView;
+@class ADNPassportLaunchView;
 
-@protocol ADNLoginViewDelegate <NSObject>
+@protocol ADNPassportLaunchViewDelegate <NSObject>
 
-- (void)adnLoginViewDidRequestInstall:(ADNLoginView *)loginView;
-- (void)adnLoginViewDidRequestLogin:(ADNLoginView *)loginView;
+- (void)adnPassportLaunchViewDidRequestInstall:(ADNPassportLaunchView *)passportLaunchView;
+- (void)adnPassportLaunchViewDidRequestLogin:(ADNPassportLaunchView *)passportLaunchView;
 
 @end
 
-@interface ADNLoginView : UIView
+@interface ADNPassportLaunchView : UIView
 
-@property (weak, nonatomic) NSObject<ADNLoginViewDelegate> *delegate;
+@property (weak, nonatomic) NSObject<ADNPassportLaunchViewDelegate> *delegate;
 
 @property (strong, nonatomic) UIButton *button;
 @property (strong, nonatomic) UILabel *signupLabel;

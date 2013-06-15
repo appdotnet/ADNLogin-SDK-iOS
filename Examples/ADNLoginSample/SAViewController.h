@@ -7,11 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "ADNLoginView.h"
+#import "ADNPassportLaunchView.h"
 
-@interface SAViewController : UIViewController<ADNLoginViewDelegate>
+@interface SAViewController : UIViewController<ADNPassportLaunchViewDelegate>
 
-@property (assign, nonatomic) BOOL loginViewShown;
-@property (weak, nonatomic) ADNLoginView *loginView;
+@property (assign, nonatomic) BOOL passportLaunchViewShown;
+@property (weak, nonatomic) ADNPassportLaunchView *passportLaunchView;
 
 @end

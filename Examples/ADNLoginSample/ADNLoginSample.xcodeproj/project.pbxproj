@@ -19,7 +19,7 @@
 		651837F2176BEDE200CD8974 /* SAViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 651837E7176BECA800CD8974 /* SAViewController.m */; };
 		651837F3176BEDE200CD8974 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 651837DA176BECA800CD8974 /* main.m */; };
 		651A6BD0176BEFE80057413B /* ADNLogin.m in Sources */ = {isa = PBXBuildFile; fileRef = 651A6BCD176BEFE80057413B /* ADNLogin.m */; };
-		651A6BD1176BEFE80057413B /* ADNLoginView.m in Sources */ = {isa = PBXBuildFile; fileRef = 651A6BCF176BEFE80057413B /* ADNLoginView.m */; };
+		651A6BD1176BEFE80057413B /* ADNPassportLaunchView.m in Sources */ = {isa = PBXBuildFile; fileRef = 651A6BCF176BEFE80057413B /* ADNPassportLaunchView.m */; };
 		651A6BD3176BF0250057413B /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 651A6BD2176BF0250057413B /* StoreKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		651A6BD7176BF4AF0057413B /* SALoggedInViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 651A6BD5176BF4AF0057413B /* SALoggedInViewController.m */; };
 		651A6BD8176BF4AF0057413B /* SALoggedInViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 651A6BD6176BF4AF0057413B /* SALoggedInViewController.xib */; };
@@ -44,8 +44,8 @@
 		651837EA176BECA800CD8974 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/SAViewController.xib; sourceTree = "<group>"; };
 		651A6BCC176BEFE80057413B /* ADNLogin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ADNLogin.h; sourceTree = "<group>"; };
 		651A6BCD176BEFE80057413B /* ADNLogin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ADNLogin.m; sourceTree = "<group>"; };
-		651A6BCE176BEFE80057413B /* ADNLoginView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ADNLoginView.h; sourceTree = "<group>"; };
-		651A6BCF176BEFE80057413B /* ADNLoginView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ADNLoginView.m; sourceTree = "<group>"; };
+		651A6BCE176BEFE80057413B /* ADNPassportLaunchView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ADNPassportLaunchView.h; sourceTree = "<group>"; };
+		651A6BCF176BEFE80057413B /* ADNPassportLaunchView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ADNPassportLaunchView.m; sourceTree = "<group>"; };
 		651A6BD2176BF0250057413B /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		651A6BD4176BF4AF0057413B /* SALoggedInViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SALoggedInViewController.h; sourceTree = "<group>"; };
 		651A6BD5176BF4AF0057413B /* SALoggedInViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SALoggedInViewController.m; sourceTree = "<group>"; };
@@ -131,8 +131,8 @@
 			children = (
 				651A6BCC176BEFE80057413B /* ADNLogin.h */,
 				651A6BCD176BEFE80057413B /* ADNLogin.m */,
-				651A6BCE176BEFE80057413B /* ADNLoginView.h */,
-				651A6BCF176BEFE80057413B /* ADNLoginView.m */,
+				651A6BCE176BEFE80057413B /* ADNPassportLaunchView.h */,
+				651A6BCF176BEFE80057413B /* ADNPassportLaunchView.m */,
 			);
 			name = SDK;
 			path = ../../SDK;
@@ -210,7 +210,7 @@
 				651837F2176BEDE200CD8974 /* SAViewController.m in Sources */,
 				651837F3176BEDE200CD8974 /* main.m in Sources */,
 				651A6BD0176BEFE80057413B /* ADNLogin.m in Sources */,
-				651A6BD1176BEFE80057413B /* ADNLoginView.m in Sources */,
+				651A6BD1176BEFE80057413B /* ADNPassportLaunchView.m in Sources */,
 				651A6BD7176BF4AF0057413B /* SALoggedInViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
