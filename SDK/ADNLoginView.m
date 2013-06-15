@@ -25,7 +25,6 @@
 
 #import "ADNLogin.h"
 
-
 @implementation ADNLoginView
 
 - (id)initWithFrame:(CGRect)frame {
@@ -47,6 +46,8 @@
 }
 
 - (void)setupSubviews {
+	self.backgroundColor = [UIColor whiteColor];
+
 	self.signupLabel = [[UILabel alloc] initWithFrame:CGRectMake(20.0, 4.0, 280.0, 39.0)];
 	self.signupLabel.backgroundColor = [UIColor clearColor];
 	self.signupLabel.textAlignment = UITextAlignmentCenter;

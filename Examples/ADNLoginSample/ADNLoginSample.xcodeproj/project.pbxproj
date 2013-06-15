@@ -18,6 +18,11 @@
 		651837F1176BEDE200CD8974 /* SAAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 651837DE176BECA800CD8974 /* SAAppDelegate.m */; };
 		651837F2176BEDE200CD8974 /* SAViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 651837E7176BECA800CD8974 /* SAViewController.m */; };
 		651837F3176BEDE200CD8974 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 651837DA176BECA800CD8974 /* main.m */; };
+		651A6BD0176BEFE80057413B /* ADNLogin.m in Sources */ = {isa = PBXBuildFile; fileRef = 651A6BCD176BEFE80057413B /* ADNLogin.m */; };
+		651A6BD1176BEFE80057413B /* ADNLoginView.m in Sources */ = {isa = PBXBuildFile; fileRef = 651A6BCF176BEFE80057413B /* ADNLoginView.m */; };
+		651A6BD3176BF0250057413B /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 651A6BD2176BF0250057413B /* StoreKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		651A6BD7176BF4AF0057413B /* SALoggedInViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 651A6BD5176BF4AF0057413B /* SALoggedInViewController.m */; };
+		651A6BD8176BF4AF0057413B /* SALoggedInViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 651A6BD6176BF4AF0057413B /* SALoggedInViewController.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +42,14 @@
 		651837E6176BECA800CD8974 /* SAViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SAViewController.h; sourceTree = "<group>"; };
 		651837E7176BECA800CD8974 /* SAViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SAViewController.m; sourceTree = "<group>"; };
 		651837EA176BECA800CD8974 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/SAViewController.xib; sourceTree = "<group>"; };
+		651A6BCC176BEFE80057413B /* ADNLogin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ADNLogin.h; sourceTree = "<group>"; };
+		651A6BCD176BEFE80057413B /* ADNLogin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ADNLogin.m; sourceTree = "<group>"; };
+		651A6BCE176BEFE80057413B /* ADNLoginView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ADNLoginView.h; sourceTree = "<group>"; };
+		651A6BCF176BEFE80057413B /* ADNLoginView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ADNLoginView.m; sourceTree = "<group>"; };
+		651A6BD2176BF0250057413B /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		651A6BD4176BF4AF0057413B /* SALoggedInViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SALoggedInViewController.h; sourceTree = "<group>"; };
+		651A6BD5176BF4AF0057413B /* SALoggedInViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SALoggedInViewController.m; sourceTree = "<group>"; };
+		651A6BD6176BF4AF0057413B /* SALoggedInViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = SALoggedInViewController.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,6 +57,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				651A6BD3176BF0250057413B /* StoreKit.framework in Frameworks */,
 				651837CF176BECA800CD8974 /* UIKit.framework in Frameworks */,
 				651837D1176BECA800CD8974 /* Foundation.framework in Frameworks */,
 				651837D3176BECA800CD8974 /* CoreGraphics.framework in Frameworks */,
@@ -56,6 +70,7 @@
 		651837C2176BECA800CD8974 = {
 			isa = PBXGroup;
 			children = (
+				651A6BD2176BF0250057413B /* StoreKit.framework */,
 				651837D4176BECA800CD8974 /* ADNLoginSample */,
 				651837CD176BECA800CD8974 /* Frameworks */,
 				651837CC176BECA800CD8974 /* Products */,
@@ -88,6 +103,10 @@
 				651837E6176BECA800CD8974 /* SAViewController.h */,
 				651837E7176BECA800CD8974 /* SAViewController.m */,
 				651837E9176BECA800CD8974 /* SAViewController.xib */,
+				651A6BD4176BF4AF0057413B /* SALoggedInViewController.h */,
+				651A6BD5176BF4AF0057413B /* SALoggedInViewController.m */,
+				651A6BD6176BF4AF0057413B /* SALoggedInViewController.xib */,
+				651A6BCB176BEFE80057413B /* SDK */,
 				651837D5176BECA800CD8974 /* Supporting Files */,
 			);
 			name = ADNLoginSample;
@@ -105,6 +124,18 @@
 				651837E4176BECA800CD8974 /* Default-568h@2x.png */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		651A6BCB176BEFE80057413B /* SDK */ = {
+			isa = PBXGroup;
+			children = (
+				651A6BCC176BEFE80057413B /* ADNLogin.h */,
+				651A6BCD176BEFE80057413B /* ADNLogin.m */,
+				651A6BCE176BEFE80057413B /* ADNLoginView.h */,
+				651A6BCF176BEFE80057413B /* ADNLoginView.m */,
+			);
+			name = SDK;
+			path = ../../SDK;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -164,6 +195,7 @@
 				651837E3176BECA800CD8974 /* Default@2x.png in Resources */,
 				651837E5176BECA800CD8974 /* Default-568h@2x.png in Resources */,
 				651837EB176BECA800CD8974 /* SAViewController.xib in Resources */,
+				651A6BD8176BF4AF0057413B /* SALoggedInViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -177,6 +209,9 @@
 				651837F1176BEDE200CD8974 /* SAAppDelegate.m in Sources */,
 				651837F2176BEDE200CD8974 /* SAViewController.m in Sources */,
 				651837F3176BEDE200CD8974 /* main.m in Sources */,
+				651A6BD0176BEFE80057413B /* ADNLogin.m in Sources */,
+				651A6BD1176BEFE80057413B /* ADNLoginView.m in Sources */,
+				651A6BD7176BF4AF0057413B /* SALoggedInViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

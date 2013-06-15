@@ -239,11 +239,11 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 }
 
 - (BOOL)isLoginAvailable {
-	return [self findLoginSchemeWithSuffix:nil forStoreDetection:YES];
+	return [self findLoginSchemeWithSuffix:nil forStoreDetection:YES] != nil;
 }
 
 - (BOOL)isFindFriendsAvailable {
-	return [self findLoginSchemeWithSuffix:@"ff" forStoreDetection:NO];
+	return [self findLoginSchemeWithSuffix:@"ff" forStoreDetection:NO] != nil;
 }
 
 - (BOOL)login {
@@ -368,7 +368,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 
 	dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kADNLoginPollingInterval * NSEC_PER_SEC));
 	dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-		BOOL isInstalled = [self isLoginAvailable];
+		BOOL isInstalled = 	[self findLoginSchemeWithSuffix:nil forStoreDetection:NO] != nil;
 
 		if (self.polling) {
 			if (isInstalled && [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive) {

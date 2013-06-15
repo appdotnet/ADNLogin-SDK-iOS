@@ -7,7 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ADNLoginView.h"
 
-@interface SAViewController : UIViewController
+@interface SAViewController : UIViewController<ADNLoginViewDelegate>
+
+@property (assign, nonatomic) BOOL loginViewShown;
+@property (weak, nonatomic) ADNLoginView *loginView;
 
 @end

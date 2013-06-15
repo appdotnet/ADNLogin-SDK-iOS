@@ -8,9 +8,11 @@
 
 #import <UIKit/UIKit.h>
 
+#import "ADNLogin.h"
+
 @class SAViewController;
 
-@interface SAAppDelegate : UIResponder <UIApplicationDelegate>
+@interface SAAppDelegate : UIResponder <UIApplicationDelegate, ADNLoginDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 
