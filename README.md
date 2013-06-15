@@ -16,7 +16,7 @@ Should be entered into the URL scheme editor this way:
 
 Often, developers create multiple apps which share the same App.net client ID but which are represented by different applications in the iOS app store. Each application in iTunes should have the URL scheme for alternate versions with an app-unique identifier, e.g., "ipad" for the iPad version of an application. This suffix should match with the information entered in the app management interface on App.net.
 
-Each bundle ID must be associated with an App.net application and directory page. You must go and create a Directory Page for your app on its settings page in the developer management interface here: https://account.app.net/developer/apps/ (click into the app, look for "Create Page", complete the form. You do not need to make your page public in order to use the SDK.) **If you receive the "Failed to load authorize dialog", this is most likely the problem.**
+Each bundle ID must be associated with an App.net application and directory page. You must go and create a Directory Page for your app on its settings page in the developer management interface here: https://account.app.net/developer/apps/ (click into the app, look for "Create Page", complete the form. You do not need to make your page public in order to use the SDK.) **If you receive the "Failed to load authorize dialog" error, this is most likely the problem.**
 
 In your app delegate's header file, import ADNLogin.h and have your delegate implement the ADNLoginDelegate protocol.
 
