@@ -27,6 +27,7 @@
 #import <StoreKit/StoreKit.h>
 #endif
 
+
 @class ADNLogin;
 
 // Error domain
@@ -37,10 +38,9 @@ static NSString *const kADNLoginWillBeginPollingNotification = @"ADNLoginWillBeg
 static NSString *const kADNLoginDidEndPollingNotification = @"ADNLoginDidEndPollingNotification";
 
 #ifdef __IPHONE_6_0
-
 typedef void (^ADNLoginStoreCompletionBlock)(SKStoreProductViewController *storeViewController, BOOL result, NSError *error);
-
 #endif
+
 
 /**
  The `ADNLoginDelegate` protocol defines the methods the ADNLogin SDK will use to communicate state with your app.

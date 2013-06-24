@@ -23,6 +23,7 @@
 
 #import "ADNLogin.h"
 
+
 #ifndef ADNLOGIN_SDK_SCHEME
 	#define ADNLOGIN_SDK_SCHEME @""
 #endif
@@ -38,6 +39,7 @@ static NSString *const kADNLoginSDKVersion = @"2.0.0";
 
 static NSString *const kADNLoginAppInstallURLTemplate = @"itms-apps://itunes.apple.com/us/app/id%@";
 static NSString *const kADNLoginAppInstalliTunesID = @"534414475";
+
 
 static NSString *queryStringEscape(NSString *string, NSStringEncoding encoding) {
 	static NSString *const kAFCharactersToBeEscaped = @":/?&=;+!@#$()~',*";
@@ -87,6 +89,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 	return parameters;
 }
 
+
 @interface ADNLogin ()
 
 @property (strong, nonatomic) NSString *clientID;
@@ -100,6 +103,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 - (void)beginPollingWithDuration:(NSTimeInterval)duration;
 
 @end
+
 
 @implementation ADNLogin
 

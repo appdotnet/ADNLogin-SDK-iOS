@@ -23,7 +23,9 @@
 
 #import <UIKit/UIKit.h>
 
+
 @class ADNPassportLaunchView;
+
 
 @protocol ADNPassportLaunchViewDelegate <NSObject>
 
@@ -31,6 +33,7 @@
 - (void)adnPassportLaunchViewDidRequestLogin:(ADNPassportLaunchView *)passportLaunchView;
 
 @end
+
 
 @interface ADNPassportLaunchView : UIView
 

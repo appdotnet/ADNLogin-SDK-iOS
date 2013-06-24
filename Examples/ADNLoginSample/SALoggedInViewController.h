@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
+
 @interface SALoggedInViewController : UIViewController
 
 @property (strong, nonatomic) NSString *text;
