@@ -2,6 +2,22 @@
 
 This is the documentation for the App.net Login SDK for iOS. It allows users to forgo entering passwords into each app and instead authorize from the App.net Passport iOS application. This app allows you to browse the App.net directory and perform account management functions.
 
+Another important function of the SDK is that it allows you to seamlessly offer an option to install Passport, so that users without accounts can sign up for App.net. The default signup flow works like this:
+
+![ADNLogin signup flow](https://files.app.net/1/117340/a7LbnYnTL9IuretG0qkSwh5yWAGoAcItQQRhMWedBfz_Jeqwf5D5Hi2M57ZKeA2_aKrfFDQ3JVyAsAhy2Opx1TXCSstDUZ7EbviOelBNoEOw2aWsDXQ-VNLqYzyJdaScIQjiGOze037QGkAiSMQSPUmXTqHPL34c61twjVXTVW1FJvh2Lyt8d3GJDp1dUh1tA)
+
+From left to right above, the steps are:
+
+1. On your login view or add account screen, present a view which allows the user to launch or install Passport. (This assumes the user does not have Passport installed.)
+2. When a user taps the Install Passport button, display an activity indicator to inform the user that action is taking place.
+3. Display the App Store and invite users to download Passport to create an account. While not visible in the screenshots above, the first screenshot in the store will be tailored to informing users that Passport is for account creation.
+4. When StoreKit is dismissed, the login SDK begins a polling process to determine whether the Passport app has been installed. Once it is installed, it is automatically launched. If polling times out -- e.g., the user cancels the StoreKit view controller without installing, the view returns to its original state. If Passport becomes launchable within 30 seconds of StoreKit closing, it is automatically launched.
+5. The user sees the App.net Passport splash screen. (When launched from the login SDK, this screen may contain additional information about the app which launched Passport.)
+6. The user completes the login or sign up/onboarding process and is presented with an authorize dialog for the app which launched Passport.
+7. The user is returned to the app which launched Passport with an access token.
+
+A sample application which implements this flow is provided with the SDK in the Examples folder. The overlay view visible as the white view in the screenshots above is also included alongside the SDK. You are free to customize the appearance of this view or reimplement it altogether. We do recommend that you keep the copy and functionality similar for the sake of consistency of user experience across apps.
+
 ## Usage
 
 The SDK is designed to have no other dependencies other than iOS itself. It should work with iOS 5.1+, though use of a modern SDK with ARC and "modern" object literal support is required. (If this is a problem for anyone, we can likely change this.)
@@ -16,9 +32,11 @@ Should be entered into the URL scheme editor this way:
 
 Often, developers create multiple apps which share the same App.net client ID but which are represented by different applications in the iOS app store. Each application in iTunes should have the URL scheme for alternate versions with an app-unique identifier, e.g., "ipad" for the iPad version of an application. This suffix should match with the information entered in the app management interface on App.net.
 
-Each bundle ID must be associated with an App.net application and directory page. You must go and create a Directory Page for your app on its settings page in the developer management interface here: https://account.app.net/developer/apps/ (click into the app, look for "Create Page", complete the form. You do not need to make your page public in order to use the SDK.) **If you receive the "Failed to load authorize dialog" error, this is most likely the problem.**
+Each bundle ID must be associated with an App.net application in the [developer management interface](https://account.app.net/developer/apps/). You may either whitelist your bundle ID for test apps or create a Directory Page for your production-ready app. (You do not need to make your page public in order to use the SDK.) **If you receive the "Failed to load authorize dialog" error, a mismatch of bundle ID is most likely the problem.** Note that bundle ID matching is case-sensitive. Be sure that you are matching the bundle ID exactly.
 
 In your app delegate's header file, import ADNLogin.h and have your delegate implement the ADNLoginDelegate protocol.
+
+**NOTE: The ADNLoginDelegate protocol has changed significantly since the 1.x.x releases. Please double-check that you've defined the proper methods on your delegate.**
 
 ```objc
 #import "ADNLogin.h"
