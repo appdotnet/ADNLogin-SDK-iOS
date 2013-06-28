@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
     s.source       = { :git => "https://github.com/appdotnet/ADNLogin-SDK-iOS.git", :tag => "2.0.0" }
     s.ios.deployment_target = '5.0'
     s.source_files = 'SDK/*.{h,m}'
-    s.public_header_files = 'SDK/ADNLogin.h'
+    s.public_header_files = 'SDK/*.h'
     s.frameworks = 'Foundation', 'Security', 'StoreKit'
     s.requires_arc = true
 end
