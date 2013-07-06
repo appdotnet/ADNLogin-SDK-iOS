@@ -84,11 +84,6 @@ typedef void (^ADNLoginStoreCompletionBlock)(SKStoreProductViewController *store
  */
 - (BOOL)adnLoginDidEndPollingWithSuccess:(BOOL)success;
 
-/**
- Called when finding friends with App.net Passport has completed.
- */
-- (void)adnLoginDidEndFindFriends;
-
 @end
 
 
@@ -121,7 +116,17 @@ typedef void (^ADNLoginStoreCompletionBlock)(SKStoreProductViewController *store
 /**
  Whether or not App.net Passport is installed and able to support launching the find friends feature directly.
  */
-@property (readonly, nonatomic, getter=isFindFriendsAvailable) BOOL findFriendsAvailable;
+@property (readonly, nonatomic, getter=isFindFriendsActionAvailable) BOOL findFriendsAvailable;
+
+/**
+ Whether or not App.net Passport is installed and able to support launching the find friends feature directly.
+ */
+@property (readonly, nonatomic, getter=isFindFriendsActionAvailable) BOOL inviteFriendsAvailable;
+
+/**
+ Whether or not App.net Passport is installed and able to support launching the recommended users feature directly.
+ */
+@property (readonly, nonatomic, getter=isFindFriendsActionAvailable) BOOL recommendedUserseAvailable;
 
 /**
  Authorization scopes to request when logging in or launching passport.
@@ -155,6 +160,20 @@ typedef void (^ADNLoginStoreCompletionBlock)(SKStoreProductViewController *store
  @return `YES` if App.net Passport was launched, `NO` if it was not installed, too old or unable to open
  */
 - (BOOL)launchFindFriends;
+
+/**
+ Request that App.net Passport launch the invite friends feature.
+
+ @return `YES` if App.net Passport was launched, `NO` if it was not installed, too old or unable to open
+ */
+- (BOOL)launchInviteFriends;
+
+/**
+ Request that App.net Passport launch the recommended users feature.
+
+ @return `YES` if App.net Passport was launched, `NO` if it was not installed, too old or unable to open
+ */
+- (BOOL)launchRecommendedUsers;
 
 #ifdef __IPHONE_6_0
 

@@ -201,12 +201,6 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 					}
 				});
 			}
-		} else if ([url.host isEqualToString:@"find-friends-return"]) {
-			dispatch_async(dispatch_get_main_queue(), ^{
-				if ([self.delegate respondsToSelector:@selector(adnLoginDidEndFindFriends)]) {
-					[self.delegate adnLoginDidEndFindFriends];
-				}
-			});
 		}
 
 		return YES;
@@ -246,7 +240,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 	return [self findLoginSchemeWithSuffix:nil forStoreDetection:YES] != nil;
 }
 
-- (BOOL)isFindFriendsAvailable {
+- (BOOL)isFindFriendsActionAvailable {
 	return [self findLoginSchemeWithSuffix:@"ff" forStoreDetection:NO] != nil;
 }
 
@@ -266,6 +260,18 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 }
 
 - (BOOL)launchFindFriends {
+	return [self launchFindFriendsAction:@"find-friends"];
+}
+
+- (BOOL)launchRecommendedUsers {
+	return [self launchFindFriendsAction:@"recommended"];
+}
+
+- (BOOL)launchInviteFriends {
+	return [self launchFindFriendsAction:@"invite/send"];
+}
+
+- (BOOL)launchFindFriendsAction:(NSString *)action {
 	NSString *scheme = [self findLoginSchemeWithSuffix:@"ff" forStoreDetection:NO];
 
 	NSDictionary *parameters = @{
@@ -275,7 +281,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 		@"sdk_version": kADNLoginSDKVersion,
 	};
 
-	NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://find-friends?%@", scheme, queryStringForParameters(parameters)]];
+	NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://%@?%@", scheme, action, queryStringForParameters(parameters)]];
 	return [[UIApplication sharedApplication] openURL:url];
 }
 
