@@ -51,9 +51,9 @@
 
 	self.signupLabel = [[UILabel alloc] initWithFrame:CGRectMake(20.0, 4.0, 280.0, 39.0)];
 	self.signupLabel.backgroundColor = [UIColor clearColor];
-	self.signupLabel.textAlignment = UITextAlignmentCenter;
+	self.signupLabel.textAlignment = NSTextAlignmentCenter;
 	self.signupLabel.numberOfLines = 0;
-	self.signupLabel.lineBreakMode = UILineBreakModeWordWrap;
+	self.signupLabel.lineBreakMode = NSLineBreakByWordWrapping;
 	self.signupLabel.font = [UIFont systemFontOfSize:14.0];
 	[self addSubview:self.signupLabel];
 
