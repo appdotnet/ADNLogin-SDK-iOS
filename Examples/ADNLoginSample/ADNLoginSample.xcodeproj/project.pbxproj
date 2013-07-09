@@ -70,7 +70,6 @@
 		651837C2176BECA800CD8974 = {
 			isa = PBXGroup;
 			children = (
-				651A6BD2176BF0250057413B /* StoreKit.framework */,
 				651837D4176BECA800CD8974 /* ADNLoginSample */,
 				651837CD176BECA800CD8974 /* Frameworks */,
 				651837CC176BECA800CD8974 /* Products */,
@@ -88,6 +87,7 @@
 		651837CD176BECA800CD8974 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				651A6BD2176BF0250057413B /* StoreKit.framework */,
 				651837CE176BECA800CD8974 /* UIKit.framework */,
 				651837D0176BECA800CD8974 /* Foundation.framework */,
 				651837D2176BECA800CD8974 /* CoreGraphics.framework */,

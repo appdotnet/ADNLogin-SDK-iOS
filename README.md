@@ -18,6 +18,10 @@ From left to right above, the steps are:
 
 A sample application which implements this flow is provided with the SDK in the Examples folder. The overlay view visible as the white view in the screenshots above is also included alongside the SDK. You are free to customize the appearance of this view or reimplement it altogether. We do recommend that you keep the copy and functionality similar for the sake of consistency of user experience across apps.
 
+## Changelog
+
+2.1.0: Add methods for finding friends, inviting users and viewing recommended users to follow. Removed `adnLoginDidEndFindFriends` delegate method. (Test for the app to become active again to determine when you have returned from those activities.)
+
 ## Usage
 
 The SDK is designed to have no other dependencies other than iOS itself. It should work with iOS 5.1+, though use of a modern SDK with ARC and "modern" object literal support is required. (If this is a problem for anyone, we can likely change this.)

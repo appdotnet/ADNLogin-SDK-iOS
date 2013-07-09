@@ -126,7 +126,7 @@ typedef void (^ADNLoginStoreCompletionBlock)(SKStoreProductViewController *store
 /**
  Whether or not App.net Passport is installed and able to support launching the recommended users feature directly.
  */
-@property (readonly, nonatomic, getter=isFindFriendsActionAvailable) BOOL recommendedUserseAvailable;
+@property (readonly, nonatomic, getter=isFindFriendsActionAvailable) BOOL recommendedUsersAvailable;
 
 /**
  Authorization scopes to request when logging in or launching passport.
