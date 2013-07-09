@@ -20,7 +20,7 @@ A sample application which implements this flow is provided with the SDK in the 
 
 ## Changelog
 
-2.1.0: Add methods for finding friends, inviting users and viewing recommended users to follow. Removed `adnLoginDidEndFindFriends` delegate method. (Test for the app to become active again to determine when you have returned from those activities.)
+2.1.0: Add methods for finding friends, inviting users and viewing recommended users to follow. Removed `adnLoginDidEndFindFriends` delegate method. (Test for the app to become active again to determine when you have returned from those activities.) These won't work until Passport 1.1 has been released.
 
 ## Usage
 
