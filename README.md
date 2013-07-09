@@ -85,6 +85,7 @@ Implement the ADNLoginDelegate protocol methods:
 - (void)adnLoginDidFailWithError:(NSError *)error {
     // Report error to user.
     // App.net Passport 1.0.474 does not currently call this method, but newer versions will.
+    // The error will have information useful for debugging, but the error message may not be suitable for display to users.
 }
 ```
 
