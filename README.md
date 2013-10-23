@@ -69,7 +69,7 @@ Ensure that the login SDK has the opportunity to handle any open URL which comes
 
 ```objc
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
-    return [self.adn openURL:url sourceApplication:sourceApplication annotation:annotation];
+    return [[[ADNLogin sharedInstance] openURL:url sourceApplication:sourceApplication annotation:annotation];
  }
 ```
 
