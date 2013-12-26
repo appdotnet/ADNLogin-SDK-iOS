@@ -349,7 +349,7 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 	[self beginPollingWithDuration:kADNLoginShortPollingDuration];
 
 	// Do not dismiss if the delegate has been changed.
-	if (viewController.delegate == self) {
+	if ([viewController.delegate isEqual:self]) {
 		[viewController.presentingViewController dismissViewControllerAnimated:YES completion:nil];
 	}
 }
