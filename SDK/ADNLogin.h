@@ -52,6 +52,7 @@ typedef void (^ADNLoginStoreCompletionBlock)(SKStoreProductViewController *store
  Called when fast-switching back from App.net Passport with valid login credentials.
  
  @param userID The user ID of the logged-in user.
+ @param username The user name of the logged-in user.
  @param accessToken An access token authorized with the requested permissions.
 */
 - (void)adnLoginDidSucceedForUserWithID:(NSString *)userID username:(NSString *)username token:(NSString *)accessToken;
@@ -147,8 +148,6 @@ typedef void (^ADNLoginStoreCompletionBlock)(SKStoreProductViewController *store
 
 /**
  Request login.
-
- @param scopes A list of the requested authentication scopes.
 
  @return `YES` if App.net Passport was launched to request login, `NO` if it was not installed or unable to open
  */
